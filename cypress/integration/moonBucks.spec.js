@@ -11,7 +11,7 @@ describe('Moonbucks Menu', () => {
     cy.get('.menu-list-item').should('contain', '에스프레소');
   });
 
-  it('should be able to edit menu when user wants to rename the menu', () => {
+  it('should be able to rename menu when user click on edit button', () => {
     cy.get('#menu-name').type('에스프레소');
     cy.get('#menu-submit-button').click();
     cy.get('.menu-list-item').should('contain', '에스프레소');

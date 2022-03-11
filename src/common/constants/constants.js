@@ -47,3 +47,11 @@ export const CATEGORIES = {
 export const LOCALSTORAGE = {
   ITEM: 'menu',
 };
+
+export const MENU = {
+  espresso: [],
+  frappuccino: [],
+  blended: [],
+  teavana: [],
+  desert: [],
+};
