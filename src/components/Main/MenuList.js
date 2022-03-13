@@ -1,3 +1,4 @@
+import { PROMPT } from '../../common/constants/constants.js';
 import Component from '../../core/Component.js';
 
 export class MenuList extends Component {
@@ -6,9 +7,9 @@ export class MenuList extends Component {
   }
 
   template() {
-    const { menu, currentCategory } = this.props;
+    const { menu } = this.props;
 
-    const items = menu[currentCategory];
+    const items = Object.keys(menu).map((num) => menu[num].name);
 
     return `
     ${items
@@ -35,31 +36,49 @@ export class MenuList extends Component {
   componentDidMount() {
     this.$target.addEventListener('click', ({ target }) => {
       if (target.tagName !== 'BUTTON') return;
+      const { menu } = this.props;
+      const { handlesoldOutBtn, handleDeleteBtn, handleUpdateBtn, props } =
+        this;
+      const item = target.closest('li').children[0];
+      let id;
+
+      menu.map((target) => {
+        if (target.name === item.textContent) id = target.id;
+      });
 
       if (target.classList.contains('menu-sold-out-button')) {
-        const item = target.closest('li').children[0];
-
-        item.classList.toggle('sold-out');
+        handlesoldOutBtn(props, id);
       }
 
       if (target.classList.contains('menu-edit-button')) {
-        const editedName = window.prompt('수정 하실 메뉴명을 입력해 주세요.');
+        const editedName = window.prompt(PROMPT.RENAME);
 
-        this.handleMenuItem(this.props, target, editedName);
+        handleUpdateBtn(props, id, editedName);
       }
 
       if (target.classList.contains('menu-remove-button')) {
-        this.handleMenuItem(this.props, target);
+        const confirmation = window.confirm('정말 삭제하시겠습니까 ?');
+
+        if (confirmation) handleDeleteBtn(props, id);
       }
     });
   }
 
-  handleMenuItem(state, target, editedName) {
-    const { menu, currentCategory, onClickBtn } = state;
-    const item = target.closest('li').children[0].textContent;
+  handleDeleteBtn(state, id) {
+    const { onClickDelete } = state;
 
-    onClickBtn(target, menu, currentCategory, item, editedName);
+    onClickDelete(id);
   }
 
-  deleteMenuItem() {}
+  handlesoldOutBtn(state, id) {
+    const { onClickSoldOut } = state;
+
+    onClickSoldOut(id);
+  }
+
+  handleUpdateBtn(state, id, editedName) {
+    const { onClickEdit } = state;
+
+    onClickEdit(id, editedName);
+  }
 }

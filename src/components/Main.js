@@ -10,8 +10,10 @@ export class Main extends Component {
 
   template() {
     const { categoryName, currentCategory, menu } = this.props;
+    const items = Object.keys(menu).map((num) => menu[num]);
+
     const categoryMenu = categoryName.slice(2, categoryName.length);
-    const count = menu[currentCategory].length;
+    const count = items.length;
 
     return `
     <div class="wrapper bg-white p-10">
@@ -65,21 +67,19 @@ export class Main extends Component {
     $('input').addEventListener('keypress', ({ key }) => {
       if (key !== KEY.ENTER) return;
 
-      if (alertMessage(isValidMenuName(this.props)))
-        addItemsToStore(this.props, input.value);
+      addItemsToStore(this.props, input.value);
     });
 
     this.$target.addEventListener('click', ({ target }) => {
       if (target.id !== 'menu-submit-button') return;
 
-      if (alertMessage(isValidMenuName(this.props)))
-        addItemsToStore(this.props, input.value);
+      addItemsToStore(this.props, input.value);
     });
   }
 
   addItemsToStore(props, item) {
     const { addItems } = props;
 
-    addItems(props, item);
+    addItems(item);
   }
 }

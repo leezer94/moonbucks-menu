@@ -2,9 +2,8 @@ import Component from './core/Component.js';
 import { $ } from './common/DOM.js';
 import { Nav } from './components/Nav.js';
 import { Main } from './components/Main.js';
-import { setLocalStroage, getLocalStorage } from './common/localStorage.js';
-import { MENU } from './common/constants/constants.js';
 import { MenuList } from './components/Main/MenuList.js';
+import { menuApi } from './common/api/api.js';
 
 export default class App extends Component {
   constructor(...rest) {
@@ -12,18 +11,10 @@ export default class App extends Component {
   }
 
   async initialState() {
-    this.initialLocalStorage();
-
     this.setState({
-      currentCategory: 'espresso',
+      ...this.props,
       categoryName: '☕ 에스프레소',
-      menu: getLocalStorage('cafeMenu'),
     });
-  }
-
-  initialLocalStorage() {
-    const store = getLocalStorage('cafeMenu');
-    if (!store) setLocalStroage('cafeMenu', MENU);
   }
 
   template() {
@@ -38,8 +29,14 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    const { handleCategory, handleMenuItems, handleMenuList, handleMenuBtn } =
-      this;
+    const {
+      handleCategory,
+      handleMenuItems,
+      handleMenuList,
+      handleUpdatebtn,
+      handleSoldOutBtn,
+      handleDeleteBtn,
+    } = this;
 
     new Nav($('header'), {
       currentCategory: handleCategory.bind(this),
@@ -54,51 +51,100 @@ export default class App extends Component {
     new MenuList($('ul'), {
       ...this.state,
       appendItems: handleMenuList.bind(this),
-      onClickBtn: handleMenuBtn.bind(this),
+      onClickEdit: handleUpdatebtn.bind(this),
+      onClickSoldOut: handleSoldOutBtn.bind(this),
+      onClickDelete: handleDeleteBtn.bind(this),
     });
   }
 
-  handleCategory(target) {
+  async handleCategory(target) {
     const currentTarget = target.dataset.categoryName;
+
+    const store = await menuApi.getMenuListByCategory(currentTarget);
 
     this.setState({
       ...this.state,
       currentCategory: currentTarget,
       categoryName: target.textContent.trim(),
+      menu: store,
     });
   }
 
-  handleMenuItems(state, item) {
-    const { menu, currentCategory } = state;
+  async handleMenuList() {
+    const { currentCategory } = this.props;
 
-    menu[currentCategory].push(item);
+    const store = await menuApi.getMenuListByCategory(currentCategory);
 
     this.setState({
       ...this.state,
-    });
-
-    setLocalStroage('cafeMenu', menu);
-  }
-
-  handleMenuList() {
-    this.setState({
-      ...this.state,
+      menu: store,
     });
   }
 
-  handleMenuBtn(target, menu, currentCategory, itemToedit, editedName) {
-    const array = menu[currentCategory];
+  async handleMenuItems(item) {
+    const { currentCategory } = this.state;
 
-    if (target.classList.contains('menu-remove-button')) {
-      array.splice(array.indexOf(itemToedit), 1);
-    } else if (target.classList.contains('menu-edit-button')) {
-      array.splice(array.indexOf(itemToedit), 1, editedName);
-    }
+    await menuApi.addItem(currentCategory, item);
+
+    const store = await menuApi.getMenuListByCategory(currentCategory);
 
     this.setState({
       ...this.state,
+      menu: store,
     });
+  }
 
-    setLocalStroage('cafeMenu', menu);
+  async handleSoldOutBtn(id) {
+    const { currentCategory } = this.state;
+
+    await menuApi.toggleSoldOut(currentCategory, id);
+
+    const store = await menuApi.getMenuListByCategory(currentCategory);
+
+    this.setState({
+      ...this.state,
+      menu: store,
+    });
+  }
+
+  async handleUpdatebtn(id, editedName) {
+    const { currentCategory } = this.state;
+
+    await menuApi.editMenuItem(currentCategory, id, editedName);
+
+    const store = await menuApi.getMenuListByCategory(currentCategory);
+
+    this.setState({
+      ...this.state,
+      menu: store,
+    });
+  }
+
+  async handleDeleteBtn(id) {
+    const { currentCategory } = this.state;
+
+    await menuApi.deleteItem(currentCategory, id);
+
+    const store = await menuApi.getMenuListByCategory(currentCategory);
+
+    this.setState({
+      ...this.state,
+      menu: store,
+    });
   }
 }
+
+// 체크리스트
+
+// - [] 웹 서버를 띄운다
+// - [] 서버에 새로운 메뉴가 추가될 수 있게 요청한다.
+// - [] 카테고리별 메뉴 리스트 불러오기
+// - [] 서버에 저장되어있는 메뉴가 수정될 수 있도록 요청한다.
+// - [] 서버에 메뉴가 토글 될 수 있도록 요청한다.
+// - [] 서버에 메뉴가 삭제 될 수 있도록 요청한다.
+
+// 리팩토링
+// - [] localStroage에 저장하는 로직은 지운다.
+
+// TODO 사용자 경험
+//
