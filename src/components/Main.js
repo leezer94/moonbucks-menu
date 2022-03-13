@@ -1,6 +1,5 @@
 import { KEY } from '../common/constants/constants.js';
 import { $ } from '../common/DOM.js';
-import { alertMessage, isValidMenuName } from '../common/validator.js';
 import Component from '../core/Component.js';
 
 export class Main extends Component {
